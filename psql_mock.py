@@ -32,7 +32,7 @@ class Postgres:
         d, m, y = map(int,birth_date.split('.'))
         if chat_id not in self._table:
             self._table[chat_id] = dict()
-        self._table[chat_id][name] = datetime.date(year=y,month=m,day=d).strftime('%d.%m.%Y')
+        self._table[chat_id][name] = datetime.date(year=y,month=m,day=d) #.strftime('%d.%m.%Y')
         self._update_datafile()
 
     def del_birthday(self, name : str, chat_id : str):

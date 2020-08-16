@@ -68,13 +68,13 @@ class BotHandler:
         result_json = resp.json()['result']
         return result_json
 
-    def send_message(self, chat_id : str, text : str) -> Dict:
+    def send_message(self, chat_id : str, text : str, markup = None) -> Dict:
         '''
         Send message to chat.
         '''
-        params = {'chat_id': chat_id, 'text': text}
+        params = {'chat_id': chat_id, 'text': text, 'reply_markup' : markup}
         method = 'sendMessage'
-        resp = requests.post(self.api_url + method, params)
+        resp = requests.post(self.api_url + method, data=params)
         return resp
 
     def get_last_updates(self, timeout : int = 30) -> Dict:
@@ -96,6 +96,8 @@ class BotHandler:
         '''
         updates = self.get_last_updates(timeout=timeout)
         try:
+            #подумать как ловить messege edited и callback
+            print(updates)
             message_generator = (Message(i['message']) for i in updates)
         except KeyError:
             print(updates)
