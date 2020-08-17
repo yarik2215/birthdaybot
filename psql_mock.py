@@ -42,8 +42,11 @@ class Postgres:
         self._table[chat_id].pop(name)
         self._update_datafile()
 
-    def get_all_birthdays(self, chat_id : str) -> Dict:
+    def get_chat_birthdays(self, chat_id : str) -> Dict:
         return self._table.get(chat_id, dict())
+
+    def get_all_birthdays(self) -> Dict:
+        return self._table
 
     def get_birthday(self, name : str, chat_id : str) -> Dict:
         name = name.strip()
@@ -53,5 +56,5 @@ class Postgres:
 
 if __name__ == '__main__':
     db = Postgres()
-    print(db.get_all_birthdays('123'))
+    print(db.get_chat_birthdays('123'))
     db.add_birthday('name','1.2.3','123')
