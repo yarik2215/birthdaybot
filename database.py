@@ -1,3 +1,7 @@
+'''
+This module implements API for working with birthday database.
+'''
+
 from typing import List, Dict, Tuple
 import datetime
 import re
@@ -33,15 +37,25 @@ class Database:
 
     @staticmethod
     def validate_date(birth_date : str) -> str:
+        '''
+        Validate date.
+        '''
         d, m, y = map(int, birth_date.split('.'))
         res = datetime.date(day=d, month=m, year=y)
         return res.strftime('%d.%m.%Y')
 
     @staticmethod
     def validate_name(name : str) -> str:
+        '''
+        Validate name and return formated string.
+        '''
         return name.strip()
 
+
     def add_birthday(self, name : str, birth_date : str, chat_id : str):
+        '''
+        Add birthday to database.
+        '''
         name = self.validate_name(name)
         values = (f'{name}:{chat_id}', name, self.validate_date(birth_date), chat_id)
         try:
@@ -55,6 +69,9 @@ class Database:
             conn.close()        
 
     def del_birthday(self, name : str, chat_id : int):
+        '''
+        Delete birthday with specified name and chat_id from database. 
+        '''
         name = self.validate_name(name)
         try:
             conn = sqlite3.connect('data.db')
@@ -67,6 +84,9 @@ class Database:
             conn.close()
 
     def get_chat_birthdays(self, chat_id : int) -> Tuple:
+        '''
+        Get all birthdays from selected chat.
+        '''
         b_list = tuple()
         try:
             conn = sqlite3.connect('data.db')
@@ -80,7 +100,11 @@ class Database:
         
         return tuple(b_list)
 
+
     def get_all_birthdays(self) -> Tuple:
+        '''
+        Get all birthdays from database.
+        '''
         b_list = tuple()
         try:
             conn = sqlite3.connect('data.db')
@@ -91,7 +115,11 @@ class Database:
             conn.close()
         return tuple(b_list)
 
+
     def get_birthdays_by_date(self, birth_date : str) -> Tuple:
+        '''
+        Select birthday with selected day and month from database.
+        '''
         birth_date = self.validate_date(birth_date)
         b_list = tuple()
         d,m,_ = birth_date.split('.')
@@ -109,7 +137,11 @@ class Database:
             conn.close()
         return tuple(b_list)
 
+
     def get_birthday(self, name : str, chat_id : int) -> Tuple:
+        '''
+        Get birthday with selected name and selected chat_id
+        '''
         name = self.validate_name(name)
         try:
             conn = sqlite3.connect('data.db')

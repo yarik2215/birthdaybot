@@ -12,11 +12,20 @@ db = Database()
 
 
 class BirthdayHandler:
-    
+    '''
+    BirthdayHandler class implement functions to find today's birthdays and celebrate.
+    '''
+
     def __init__(self):
+        '''
+        BirthdayHandler constructor
+        '''
         self._prev_date = None
 
     def check_birthday(self):
+        '''
+        Check there are birthdays today.
+        '''
         cur_date = datetime.date.today()
         if self._prev_date != cur_date:
             self._prev_date = cur_date
@@ -26,15 +35,22 @@ class BirthdayHandler:
             
 
     def celebrate(self, name, birth_date, chat_id):
+        '''
+        Celebrates the birthday.
+        '''
         my_bot.send_message(chat_id, f'С днем рождения {name}! 🎂😘')
 
+
     def check_new_birthday(self, name, birth_date, chat_id):
+        '''
+        Check if selected birthday is tooday.
+        '''
         c_date = datetime.date.today()
         d,m,_ = map(int, birth_date.split('.'))
         if d == c_date.day and m == c_date.month:
             self.celebrate(name, birth_date, chat_id)
         
-
+        
 birthday_handler = BirthdayHandler()
 
 
@@ -81,7 +97,7 @@ def add_command(message : Message):
     '''
     Recieve /add command and, add new birthday.
     '''
-    match = re.search(r'(\/add)\S* (.*) (\d{1,2}.\d{1,2}.\d{1,4})',message.text)
+    match = re.search(r'(\/add)\S* (.*) (\d{1,2}\.\d{1,2}\.\d{1,4})',message.text)
     if match:
         _, _name, _date = match.groups()
         try:
@@ -112,6 +128,9 @@ def del_command(message : Message):
 
 @my_bot.recieve_callback_decorator('del')
 def del_callback(callback : Callback):
+    '''
+    Del command callback. Del selected birthday.
+    '''
     text = None
     try:
         name = callback.data
@@ -192,13 +211,13 @@ def test_markup_command(message : Message):
         ]
     my_bot.send_inline_keyboard(message.chat_id, 'Test', buttons)
 
+
 @my_bot.recieve_callback_decorator('test')
 def test_callback(callback : Callback):
     '''
     /test Inline keyboard callback, edit message with inline keyboard depends on your answer
     '''
     my_bot.edit_message(callback.chat_id, callback.message.message_id, f'U select {callback.data}')
-
 
 
 
@@ -211,6 +230,7 @@ def main():
     finally:
         #add my_bot.stop()
         pass    
+
 
 if __name__ == '__main__':  
     try:

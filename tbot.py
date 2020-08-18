@@ -1,8 +1,10 @@
 '''
-This module implement classes to simplify working with telegram bot api.
+This module implement classes to simplify work with telegram bot api.
 
 Classes:
-    Message : telegram respons from server json wrapper
+    InlineButton : telegram inline button wraper
+    Message : telegram message wrapper
+    Callback : telegram callback wrapper
     BotHandler : bot to work with telegram api
 '''
 
@@ -14,7 +16,9 @@ import json
 
 
 class InlineButton:
-
+    '''
+    Class wrapper that helps to create inline buttons for inline keyboards.
+    '''
     def __init__(self, text, data, handler_name = None):
         self._button = {'text': text, 'callback_data': json.dumps({'handler' : handler_name ,'data' : data})}
     
@@ -59,7 +63,9 @@ class Message:
         
 
 class Callback:
-
+    '''
+    Telegram callback wrapper uses to parse callback from inline keyboards etc.
+    '''
     def __init__(self, callback_json):
         self._message = Message(callback_json['message'])
         self._callback_id = callback_json['id']
@@ -132,6 +138,7 @@ class BotHandler:
 
     def send_inline_keyboard(self, chat_id : int, text : str, buttons : List[List[InlineButton]]) -> Dict:
         '''
+        Send inline keyboard to chat.
         '''
         buttons = [[j.button_dict for j in i] for i in buttons]
         markup = json.dumps({'inline_keyboard' : buttons })
@@ -139,6 +146,9 @@ class BotHandler:
         return resp
 
     def edit_message(self, chat_id : int, message_id : int, text : str, markup = None) -> Dict:
+        '''
+        Edit message in chat.
+        '''
         params = {'chat_id': chat_id, 'message_id' : message_id, 'text': text, 'reply_markup' : markup}
         method = 'editMessageText'
         resp = requests.post(self.api_url + method, data=params)
@@ -188,6 +198,7 @@ class BotHandler:
         self._message_handler_queue.append(wrapper)
         return wrapper
     
+
     def recieve_command_decorator(self, command : str):
         '''
         Decorator fabric for function that waiting to recieve command.
@@ -200,6 +211,7 @@ class BotHandler:
             return wrapper
         return decorator
 
+
     def recieve_callback_decorator(self, callback_handler_name = None):
         '''
         Decorator for functions that wait for recieve a callback.
@@ -211,3 +223,4 @@ class BotHandler:
             self._callback_handler_queue.append(wrapper)
             return wrapper
         return decorator
+
