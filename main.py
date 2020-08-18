@@ -22,11 +22,19 @@ def help_command(message : Message):
 
     Команды:
     /start
+    Пока сообщение приветствия.
     /help
-    /add "[имя]" [день].[месяц].[год]
-    /del "[имя]"
+    Показывает данное сообщение с описанием бота.
+    /add [имя] [день].[месяц].[год]
+    Добавляет новый День Рождения Пример "/add test 1.1.2020"
+    /del 
+    Показывает список для выбора какой День Рождение нужно удалить.
     /list
-    /calc "[имя]"
+    Показывает все Дни Рождения.
+    /calc 
+    Подсчитывает сколько осталось дней до выбранного Дня Рождения.
+
+    Исходники 😍 лежат тут: https://github.com/yarik2215/birthdaybot/tree/dev_callback
     """
     my_bot.send_message(message.chat_id, help_str)
 
@@ -36,7 +44,7 @@ def hello_message(message : Message) -> None:
     '''
     Handle /start and send hello msg to chat.
     '''
-    my_bot.send_message(message.chat_id, f'Привет {message.sender_first_name}, я поздравительный бот. Если хочешь узнать больше напиши /help')
+    my_bot.send_message(message.chat_id, f'Привет {message.sender_first_name}, я поздравительный бот. Если хочешь узнать больше напиши /help \xF0\x9F\x98\x89')
 
 
 @my_bot.recieve_command_decorator('/add')
@@ -55,7 +63,7 @@ def add_command(message : Message):
         except KeyError:
             my_bot.send_message(message.chat_id, 'Упс, такое имя уже есть.')    
             return
-        my_bot.send_message(message.chat_id, f'Добавлен день рождение name={_name} date={_date}')
+        my_bot.send_message(message.chat_id, f'Добавлен день рождение😃\n{_name} {_date}')
     else:
         my_bot.send_message(message.chat_id, 'Wrong /add arguments. Use /add "[name]" [day].[month].[year]')
     # print(match)
@@ -82,9 +90,13 @@ def del_callback(callback : Callback):
         text = 'Упс, какая-то ошибочка)'
     my_bot.edit_message(callback.chat_id, callback.message.message_id, text)
 
+
 @my_bot.recieve_callback_decorator('cancel')
 def del_cancel_callback(callback : Callback):
-    my_bot.edit_message(callback.chat_id, callback.message.message_id, 'Ну и ладно.')
+    '''
+    Cancel inline button selected callback handler.
+    '''
+    my_bot.edit_message(callback.chat_id, callback.message.message_id, 'Ну и ладно.😒')
 
 
 @my_bot.recieve_command_decorator('/list')
@@ -95,9 +107,13 @@ def list_command(message : Message):
     b_list = db.get_chat_birthdays(message.chat_id)
     formated_list = [f' {i["name"]} {i["birth_date"]}' for i in b_list]
     formated_list = '\n'.join(formated_list)
-    my_bot.send_message(message.chat_id, f'Дни рождения:\n{formated_list}')
+    my_bot.send_message(message.chat_id, f'Дни рождения🎂:\n{formated_list}')
+
 
 def calc_days(birth_date : datetime.date):
+    '''
+    Calculates how many days left until this date not included year
+    '''
     d = birth_date.day
     m = birth_date.month
     now_date = datetime.date.today()
@@ -119,6 +135,9 @@ def calculate_command(message : Message):
     
 @my_bot.recieve_callback_decorator('calc')
 def calc_callback(callback : Callback):    
+    '''
+    Calculate callback, send how much days left until selected birthday.
+    '''
     _name = callback.data
     try:
         b_dict = db.get_birthday(_name, callback.chat_id)
@@ -132,6 +151,9 @@ def calc_callback(callback : Callback):
 
 @my_bot.recieve_command_decorator('/test')
 def test_markup_command(message : Message):
+    '''
+    Recieve /test command for tetsing inline keyboard.
+    '''
     buttons = [
         [InlineButton('1', 'b1', 'test')],
         [InlineButton('2', 'b2', 'test')],
@@ -141,6 +163,9 @@ def test_markup_command(message : Message):
 
 @my_bot.recieve_callback_decorator('test')
 def test_callback(callback : Callback):
+    '''
+    /test Inline keyboard callback, edit message with inline keyboard depends on your answer
+    '''
     my_bot.edit_message(callback.chat_id, callback.message.message_id, f'U select {callback.data}')
 
 
@@ -159,7 +184,7 @@ class BirthdayHandler:
             
 
     def celebrate(self, name, birth_date, chat_id):
-        my_bot.send_message(chat_id, f'С днем рождения {name}!')
+        my_bot.send_message(chat_id, f'С днем рождения {name}! 🎂😘')
 
 
 def main():  
