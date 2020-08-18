@@ -2,13 +2,13 @@
 from tbot import BotHandler, Message, Callback, InlineButton
 import re
 import datetime
-from psql_mock import Postgres
+from database import Database
 import bot_token
 import json
 
 bot_token = bot_token.BOT_TOKEN
 my_bot = BotHandler(bot_token)
-db = Postgres()
+db = Database()
 
 @my_bot.recieve_command_decorator('/help')
 def help_command(message : Message):
@@ -66,9 +66,9 @@ def del_command(message : Message):
     '''
     Get /del command and delete birthday with specified name
     '''
-    names = db.get_chat_birthdays(message.chat_id).keys()
+    names = db.get_chat_birthdays(message.chat_id)
     b_list = [[InlineButton('Cancel','Cancel','cancel')]]
-    b_list.extend([[InlineButton(i,i,'del')] for i in names])
+    b_list.extend([[InlineButton(text = i['name'], data = i['name'], handler_name = 'del')] for i in names])
     my_bot.send_inline_keyboard(message.chat_id,'Кого удалить?',b_list)
 
 @my_bot.recieve_callback_decorator('del')
@@ -93,7 +93,7 @@ def list_command(message : Message):
     Get /list command and send all birthdays specified for this chat to chat.
     '''
     b_list = db.get_chat_birthdays(message.chat_id)
-    formated_list = [f' {i} {b_list[i].day}.{b_list[i].month}.{b_list[i].year}' for i in b_list]
+    formated_list = [f' {i["name"]} {i["birth_date"]}' for i in b_list]
     formated_list = '\n'.join(formated_list)
     my_bot.send_message(message.chat_id, f'Дни рождения:\n{formated_list}')
 
@@ -107,16 +107,15 @@ def calc_days(birth_date : datetime.date):
     calc_date = b_date - now_date
     return calc_date.days
 
-#TODO: add buttons view for select a name
 @my_bot.recieve_command_decorator('/calc')
 def calculate_command(message : Message):
     '''
     Calculate how much days left for birthday
     '''
-    names = db.get_chat_birthdays(message.chat_id).keys()
+    names = db.get_chat_birthdays(message.chat_id)
     b_list = [[InlineButton('Cancel','Cancel','cancel')]]
-    b_list.extend([[InlineButton(i,i,'calc')] for i in names])
-    my_bot.send_inline_keyboard(message.chat_id,'Сколько дней осталось до дня рождения',b_list)
+    b_list.extend([[InlineButton(text = i['name'], data = i['name'], handler_name = 'calc')] for i in names])
+    my_bot.send_inline_keyboard(message.chat_id, 'Сколько дней осталось до дня рождения', b_list)
     
 @my_bot.recieve_callback_decorator('calc')
 def calc_callback(callback : Callback):    
@@ -126,22 +125,13 @@ def calc_callback(callback : Callback):
     except KeyError:
         my_bot.send_message(callback.chat_id, 'Упс ошибочка')
         return
-    #calculate time until birthday
-    # d,m,_ = map(int, b_dict['birth_date'].strftime('%d.%m.%Y').split('.'))
-    days = calc_days(b_dict['birth_date'])
+    d,m,y = map(int, b_dict['birth_date'].split('.'))
+    days = calc_days(datetime.date(y,m,d))
     my_bot.edit_message(callback.chat_id, callback.message.message_id, f'Осталось {days} дней до дня рождения "{_name}"')
     
 
 @my_bot.recieve_command_decorator('/test')
 def test_markup_command(message : Message):
-    # m2 = ({
-    # 'inline_keyboard': [
-    #   [InlineButton('1', 'b1', 'test').button_dict],
-    #   [{ 'text': 'Кнопка 2', 'callback_data': json.dumps({'handler' : 'test' ,'data' : '2'}) }],
-    #   [{ 'text': 'Кнопка 3', 'callback_data': json.dumps({'handler' : 'test' ,'data' : '3'}) }]
-    # ]
-    # })
-    # my_bot.send_message(message.chat_id, f'Тык', json.dumps(m2))
     buttons = [
         [InlineButton('1', 'b1', 'test')],
         [InlineButton('2', 'b2', 'test')],
@@ -154,7 +144,6 @@ def test_callback(callback : Callback):
     my_bot.edit_message(callback.chat_id, callback.message.message_id, f'U select {callback.data}')
 
 
-#TODO: add class BirthdayHandler
 class BirthdayHandler:
     
     def __init__(self):
@@ -164,13 +153,10 @@ class BirthdayHandler:
         cur_date = datetime.date.today()
         if self._prev_date != cur_date:
             self._prev_date = cur_date
-            for chat_id, table in db.get_all_birthdays().items():
-                for name, b_day in table.items():
-                    try:
-                        if b_day.day == cur_date.day and b_day.month == cur_date.month:
-                            self.celebrate(name, b_day, chat_id)
-                    except AttributeError:
-                        return
+            b_list = db.get_birthdays_by_date(cur_date.strftime('%d.%m.%Y'))
+            for i in b_list:
+                self.celebrate(name=i['name'],birth_date=i['birth_date'],chat_id=i['chat_id'])
+            
 
     def celebrate(self, name, birth_date, chat_id):
         my_bot.send_message(chat_id, f'С днем рождения {name}!')

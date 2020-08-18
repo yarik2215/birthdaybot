@@ -35,7 +35,7 @@ class Message:
 
     @property
     def text(self):
-        return self._message['text']
+        return self._message.get('text', '')
 
     @property
     def chat_id(self):
@@ -121,7 +121,7 @@ class BotHandler:
         result_json = resp.json()['result']
         return result_json
 
-    def send_message(self, chat_id : str, text : str, markup = None) -> Dict:
+    def send_message(self, chat_id : int, text : str, markup = None) -> Dict:
         '''
         Send message to chat.
         '''
@@ -130,15 +130,15 @@ class BotHandler:
         resp = requests.post(self.api_url + method, data=params)
         return resp
 
-    def send_inline_keyboard(self, chat_id : str, text : str, buttons : List[List[InlineButton]]) -> Dict:
+    def send_inline_keyboard(self, chat_id : int, text : str, buttons : List[List[InlineButton]]) -> Dict:
         '''
         '''
         buttons = [[j.button_dict for j in i] for i in buttons]
-        markup =json.dumps({'inline_keyboard' : buttons })
+        markup = json.dumps({'inline_keyboard' : buttons })
         resp = self.send_message(chat_id, text, markup)
         return resp
 
-    def edit_message(self, chat_id : str, message_id : int, text : str, markup = None) -> Dict:
+    def edit_message(self, chat_id : int, message_id : int, text : str, markup = None) -> Dict:
         params = {'chat_id': chat_id, 'message_id' : message_id, 'text': text, 'reply_markup' : markup}
         method = 'editMessageText'
         resp = requests.post(self.api_url + method, data=params)
@@ -162,7 +162,7 @@ class BotHandler:
         Bot polling routine.
         '''
         try:
-            updates = self.get_last_updates(500)
+            updates = self.get_last_updates(200)
         except ValueError:
             return
 
