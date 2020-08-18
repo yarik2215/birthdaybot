@@ -10,6 +10,35 @@ bot_token = bot_token.BOT_TOKEN
 my_bot = BotHandler(bot_token)
 db = Database()
 
+
+class BirthdayHandler:
+    
+    def __init__(self):
+        self._prev_date = None
+
+    def check_birthday(self):
+        cur_date = datetime.date.today()
+        if self._prev_date != cur_date:
+            self._prev_date = cur_date
+            b_list = db.get_birthdays_by_date(cur_date.strftime('%d.%m.%Y'))
+            for i in b_list:
+                self.celebrate(name=i['name'],birth_date=i['birth_date'],chat_id=i['chat_id'])
+            
+
+    def celebrate(self, name, birth_date, chat_id):
+        my_bot.send_message(chat_id, f'С днем рождения {name}! 🎂😘')
+
+    def check_new_birthday(self, name, birth_date, chat_id):
+        c_date = datetime.date.today()
+        d,m,_ = map(int, birth_date.split('.'))
+        if d == c_date.day and m == c_date.month:
+            self.celebrate(name, birth_date, chat_id)
+        
+
+birthday_handler = BirthdayHandler()
+
+
+
 @my_bot.recieve_command_decorator('/help')
 def help_command(message : Message):
     '''
@@ -44,7 +73,7 @@ def hello_message(message : Message) -> None:
     '''
     Handle /start and send hello msg to chat.
     '''
-    my_bot.send_message(message.chat_id, f'Привет {message.sender_first_name}, я поздравительный бот. Если хочешь узнать больше напиши /help \xF0\x9F\x98\x89')
+    my_bot.send_message(message.chat_id, f'Привет {message.sender_first_name}, я поздравительный бот. Если хочешь узнать больше напиши /help 😊')
 
 
 @my_bot.recieve_command_decorator('/add')
@@ -64,6 +93,8 @@ def add_command(message : Message):
             my_bot.send_message(message.chat_id, 'Упс, такое имя уже есть.')    
             return
         my_bot.send_message(message.chat_id, f'Добавлен день рождение😃\n{_name} {_date}')
+        #check if added birthday is today
+        birthday_handler.check_new_birthday(_name, _date, message.chat_id)
     else:
         my_bot.send_message(message.chat_id, 'Wrong /add arguments. Use /add "[name]" [day].[month].[year]')
     # print(match)
@@ -169,26 +200,9 @@ def test_callback(callback : Callback):
     my_bot.edit_message(callback.chat_id, callback.message.message_id, f'U select {callback.data}')
 
 
-class BirthdayHandler:
-    
-    def __init__(self):
-        self._prev_date = None
-
-    def check_birthday(self):
-        cur_date = datetime.date.today()
-        if self._prev_date != cur_date:
-            self._prev_date = cur_date
-            b_list = db.get_birthdays_by_date(cur_date.strftime('%d.%m.%Y'))
-            for i in b_list:
-                self.celebrate(name=i['name'],birth_date=i['birth_date'],chat_id=i['chat_id'])
-            
-
-    def celebrate(self, name, birth_date, chat_id):
-        my_bot.send_message(chat_id, f'С днем рождения {name}! 🎂😘')
 
 
 def main():  
-    birthday_handler = BirthdayHandler()
     print('Bot started!')
     try:
         while True:
