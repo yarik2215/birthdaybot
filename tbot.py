@@ -9,8 +9,7 @@ Classes:
 '''
 
 from typing import List, Set, Tuple, Dict, Generator
-import requests  
-import datetime
+import requests
 import re
 import json
 
@@ -20,7 +19,8 @@ class InlineButton:
     Class wrapper that helps to create inline buttons for inline keyboards.
     '''
     def __init__(self, text, data, handler_name = None):
-        self._button = {'text': text, 'callback_data': json.dumps({'handler' : handler_name ,'data' : data})}
+        #need to replace ' to " to than use json.loads
+        self._button = {"text": text, "callback_data": str({"handler" : handler_name ,"data" : data})}
     
     @property
     def button_dict(self):
@@ -69,7 +69,8 @@ class Callback:
     def __init__(self, callback_json):
         self._message = Message(callback_json['message'])
         self._callback_id = callback_json['id']
-        self._data = json.loads(callback_json['data'])
+        self._data = json.loads(callback_json["data"].replace("'",'"'))
+        # self._data = dict(callback_json['data'])
 
     @property
     def message(self):
@@ -141,7 +142,8 @@ class BotHandler:
         Send inline keyboard to chat.
         '''
         buttons = [[j.button_dict for j in i] for i in buttons]
-        markup = json.dumps({'inline_keyboard' : buttons })
+        markup = json.dumps({"inline_keyboard" : buttons })
+
         resp = self.send_message(chat_id, text, markup)
         return resp
 

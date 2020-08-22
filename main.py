@@ -6,8 +6,8 @@ from database import Database
 import bot_token
 import json
 
-bot_token = bot_token.BOT_TOKEN
-my_bot = BotHandler(bot_token)
+token = bot_token.BIRTHDAY_BOT_TOKEN
+my_bot = BotHandler(token)
 db = Database()
 
 
@@ -50,7 +50,7 @@ class BirthdayHandler:
         if d == c_date.day and m == c_date.month:
             self.celebrate(name, birth_date, chat_id)
         
-        
+
 birthday_handler = BirthdayHandler()
 
 
