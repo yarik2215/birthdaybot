@@ -1,5 +1,8 @@
 '''
-This module implements API for working with birthday database.
+This module implements API for working with birthday database, its SQLite database.
+
+Classes:
+    Database
 '''
 
 from typing import List, Dict, Tuple
@@ -11,12 +14,16 @@ BIRTHDAY_FIELDS = ('name','birth_date','chat_id')
 
 class Database:
     '''
-    Postgres mock using pickle and built-in buffer for birthdays.
+    Class that implements layer between birthday_bot and sqlite database.
     '''
     
-    def __init__(self):
+    def __init__(self, db_name : str):
+        '''
+        Database constructor.
+        '''
+        self.db_name = db_name
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             c.execute('''CREATE TABLE "birthdays" (
             "hash"	text NOT NULL UNIQUE,
@@ -30,15 +37,11 @@ class Database:
         finally:
             conn.close()
 
-    # def have_name(self, name : str, chat_id : str) -> bool:
-    #     chat_table = self._table.get(chat_id, dict())
-    #     res = name in chat_table
-    #     return res
 
     @staticmethod
     def validate_date(birth_date : str) -> str:
         '''
-        Validate date.
+        Validate date. And return at as string with format day.month.year .
         '''
         d, m, y = map(int, birth_date.split('.'))
         res = datetime.date(day=d, month=m, year=y)
@@ -59,7 +62,7 @@ class Database:
         name = self.validate_name(name)
         values = (f'{name}:{chat_id}', name, self.validate_date(birth_date), chat_id)
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             c.execute('INSERT INTO birthdays VALUES (?,?,?,?)', values)
             conn.commit()
@@ -74,7 +77,7 @@ class Database:
         '''
         name = self.validate_name(name)
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             c.execute('DELETE FROM birthdays WHERE name=? AND chat_id=?', (name, chat_id) )
             conn.commit()
@@ -89,7 +92,7 @@ class Database:
         '''
         b_list = tuple()
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             b_list = c.execute('SELECT name, date, chat_id FROM birthdays WHERE chat_id=?', (chat_id,))
             b_list = [dict(zip(BIRTHDAY_FIELDS, i)) for i in b_list]
@@ -107,7 +110,7 @@ class Database:
         '''
         b_list = tuple()
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             b_list = tuple(c.execute('SELECT name, date, chat_id FROM birthdays'))
             b_list = [dict(zip(BIRTHDAY_FIELDS, i)) for i in b_list]
@@ -127,7 +130,7 @@ class Database:
         # print(f'SELECT * FROM birthdays WHERE date REGEXP "{pattern}"')
 
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             conn.create_function('regexp', 2, lambda x, y: 1 if re.search(x,y) else 0)
             c = conn.cursor()
             c.execute(f'SELECT name, date, chat_id FROM birthdays WHERE date REGEXP ?', (pattern,))
@@ -144,7 +147,7 @@ class Database:
         '''
         name = self.validate_name(name)
         try:
-            conn = sqlite3.connect('data.db')
+            conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
             c.execute('SELECT name, date, chat_id FROM birthdays WHERE name=? AND chat_id=?', (name, chat_id) )
             b_day = c.fetchone()
@@ -157,8 +160,10 @@ class Database:
         return b_day
 
 
+
+
 if __name__ == '__main__':
-    db = Database()
+    db = Database('test.db')
 
     try:
         db.del_birthday('noname',0)

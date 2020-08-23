@@ -19,7 +19,6 @@ class InlineButton:
     Class wrapper that helps to create inline buttons for inline keyboards.
     '''
     def __init__(self, text, data, handler_name = None):
-        #need to replace ' to " to than use json.loads
         self._button = {"text": text, "callback_data": str({"handler" : handler_name ,"data" : data})}
     
     @property
@@ -69,6 +68,7 @@ class Callback:
     def __init__(self, callback_json):
         self._message = Message(callback_json['message'])
         self._callback_id = callback_json['id']
+        #Looks not very good, we need to replace ' to " to use json.loads
         self._data = json.loads(callback_json["data"].replace("'",'"'))
         # self._data = dict(callback_json['data'])
 
