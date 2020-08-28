@@ -5,6 +5,8 @@ import datetime
 from database import Database
 import bot_token
 import json
+import time
+import requests
 
 token = bot_token.BIRTHDAY_BOT_TOKEN
 my_bot = BotHandler(token)
@@ -226,7 +228,10 @@ def main():
     try:
         while True:
             birthday_handler.check_birthday()
-            my_bot.polling()
+            try:
+                my_bot.polling()
+            except requests.exceptions.ConnectionError:
+                time.sleep(5*60)
     finally:
         #add my_bot.stop()
         pass    
