@@ -2,7 +2,7 @@
 /__pycache__
 test.py
 bdata.data
-bot_token.py
+bot_token.txt
 
 #databases ignore
 *.db

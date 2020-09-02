@@ -3,12 +3,13 @@ from tbot import BotHandler, Message, Callback, InlineButton
 import re
 import datetime
 from database import Database
-import bot_token
 import json
 import time
 import requests
 
-token = bot_token.BIRTHDAY_BOT_TOKEN
+token = None
+with open('bot_token.txt','r') as f:
+    token = f.read().strip()
 my_bot = BotHandler(token)
 db = Database('data.db')
 
