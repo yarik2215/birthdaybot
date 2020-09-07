@@ -6,10 +6,14 @@ from database import Database
 import json
 import time
 import requests
+import os
 
 token = None
-with open('bot_token.txt','r') as f:
-    token = f.read().strip()
+try:
+    with open('bot_token.txt','r') as f:
+        token = f.read().strip()
+except FileNotFoundError:
+    token = os.environ.get('TOKEN')
 my_bot = BotHandler(token)
 db = Database('data.db')
 
